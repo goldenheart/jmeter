@@ -281,12 +281,12 @@ public class JMeterThread implements Runnable, Interruptible {
                 }
             }
         }
-        // Might be found by contoller.next()
+        // Might be found by controller.next()
         catch (JMeterStopTestException e) { // NOSONAR
             if (log.isInfoEnabled()) {
                 log.info("Stopping Test: {}", e.toString());
             }
-            stopTest();
+            shutdownTest();
         }
         catch (JMeterStopTestNowException e) { // NOSONAR
             if (log.isInfoEnabled()) {
@@ -433,10 +433,24 @@ public class JMeterThread implements Runnable, Interruptible {
             if (log.isInfoEnabled()) {
                 log.info("Stopping Test: {}", e.toString());
             }
-            stopTest();
+            if (current != null && current instanceof TransactionSampler) {
+                doEndTransactionSampler((TransactionSampler) current, parent, compiler.configureTransactionSampler((TransactionSampler) current), threadContext);
+            }
+            shutdownTest();
+        } catch (JMeterStopTestNowException e) { // NOSONAR
+            if (log.isInfoEnabled()) {
+                log.info("Stopping Test with interruption of current samplers: {}", e.toString());
+            }
+            if (current != null && current instanceof TransactionSampler) {
+                doEndTransactionSampler((TransactionSampler) current, parent, compiler.configureTransactionSampler((TransactionSampler) current), threadContext);
+            }
+            stopTestNow();
         } catch (JMeterStopThreadException e) { // NOSONAR
             if (log.isInfoEnabled()) {
                 log.info("Stopping Thread: {}", e.toString());
+            }
+            if (current != null && current instanceof TransactionSampler) {
+                doEndTransactionSampler((TransactionSampler) current, parent, compiler.configureTransactionSampler((TransactionSampler) current), threadContext);
             }
             stopThread();
         } catch (Exception e) {
@@ -522,12 +536,21 @@ public class JMeterThread implements Runnable, Interruptible {
 
             // Check if thread or test should be stopped
             if (result.isStopThread() || (!result.isSuccessful() && onErrorStopThread)) {
+                if (transactionSampler != null) {
+                    doEndTransactionSampler(transactionSampler, current, transactionPack, threadContext);
+                }
                 stopThread();
             }
             if (result.isStopTest() || (!result.isSuccessful() && onErrorStopTest)) {
-                stopTest();
+                if (transactionSampler != null) {
+                    doEndTransactionSampler(transactionSampler, current, transactionPack, threadContext);
+                }
+                shutdownTest();
             }
             if (result.isStopTestNow() || (!result.isSuccessful() && onErrorStopTestNow)) {
+                if (transactionSampler != null) {
+                    doEndTransactionSampler(transactionSampler, current, transactionPack, threadContext);
+                }
                 stopTestNow();
             }
             if(result.isStartNextThreadLoop()) {
@@ -732,14 +755,20 @@ public class JMeterThread implements Runnable, Interruptible {
         return false;
     }
 
-    private void stopTest() {
+    /**
+     * Clean shutdown of test, which means wait for end of current running samplers
+     */
+    private void shutdownTest() {
         running = false;
-        log.info("Stop Test detected by thread: {}", threadName);
+        log.info("Shutdown Test detected by thread: {}", threadName);
         if (engine != null) {
             engine.askThreadsToStop();
         }
     }
 
+    /**
+     * Stop test immediately by interrupting running samplers
+     */
     private void stopTestNow() {
         running = false;
         log.info("Stop Test Now detected by thread: {}", threadName);
@@ -748,6 +777,9 @@ public class JMeterThread implements Runnable, Interruptible {
         }
     }
 
+    /**
+     * Clean Exit of current thread 
+     */
     private void stopThread() {
         running = false;
         log.info("Stop Thread detected by thread: {}", threadName);

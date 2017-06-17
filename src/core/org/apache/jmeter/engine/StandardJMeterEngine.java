@@ -300,7 +300,7 @@ public class StandardJMeterEngine implements JMeterEngine, Runnable {
         }
         
         /**
-         * @return boolean true if all threads of all Threead Groups stopped
+         * @return boolean true if all threads of all Thread Groups stopped
          */
         private boolean verifyThreadsStopped() {
             boolean stoppedAll = true;
@@ -548,6 +548,9 @@ public class StandardJMeterEngine implements JMeterEngine, Runnable {
         }
     }
 
+    /**
+     * Clean shutdown ie, wait for end of current running samplers
+     */
     public void askThreadsToStop() {
         if (engine != null) { // Will be null if StopTest thread has started
             engine.stopTest(false);

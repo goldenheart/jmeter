@@ -112,7 +112,9 @@ public class ClientJMeterEngine implements JMeterEngine {
         HashTree testTree = test;
 
         synchronized(testTree) {
-            testTree.traverse(new PreCompiler(true));  // limit the changes to client only test elements
+            PreCompiler compiler = new PreCompiler(true);
+            testTree.traverse(compiler);  // limit the changes to client only test elements
+            JMeterContextService.initClientSideVariables(compiler.getClientSideVariables());
             testTree.traverse(new TurnElementsOn());
             testTree.traverse(new ConvertListeners());
         }
@@ -159,7 +161,7 @@ public class ClientJMeterEngine implements JMeterEngine {
 
     /**
      * Tidy up RMI access to allow JMeter client to exit.
-     * Currently just interrups the "RMI Reaper" thread.
+     * Currently just interrupts the "RMI Reaper" thread.
      * @param logger where to log the information
      */
     public static void tidyRMI(Logger logger) {
@@ -167,7 +169,7 @@ public class ClientJMeterEngine implements JMeterEngine {
         for(Thread t : Thread.getAllStackTraces().keySet()){
             String name = t.getName();
             if (name.matches(reaperRE)) {
-                logger.info("Interrupting "+name);
+                logger.info("Interrupting {}", name);
                 t.interrupt();
             }
         }
@@ -177,7 +179,7 @@ public class ClientJMeterEngine implements JMeterEngine {
     // Called by JMeter ListenToTest if remoteStop is true
     @Override
     public void exit() {
-        log.info("about to exit remote server on "+host);
+        log.info("about to exit remote server on {}", host);
         try {
             remote.rexit();
         } catch (RemoteException e) {
@@ -186,6 +188,7 @@ public class ClientJMeterEngine implements JMeterEngine {
     }
 
     private Properties savep;
+    
     /** {@inheritDoc} */
     @Override
     public void setProperties(Properties p) {

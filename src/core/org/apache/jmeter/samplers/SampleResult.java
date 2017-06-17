@@ -778,7 +778,7 @@ public class SampleResult implements Serializable, Cloneable, Searchable {
     /**
      * Get the time it took this sample to occur.
      *
-     * @return elapsed time in milliseonds
+     * @return elapsed time in milliseconds
      *
      */
     public long getTime() {
@@ -928,14 +928,14 @@ public class SampleResult implements Serializable, Cloneable, Searchable {
     }
 
     /**
-     * @return whether to stop the test
+     * @return whether to stop the test waiting for current running Sampler to end
      */
     public boolean isStopTest() {
         return stopTest;
     }
 
     /**
-     * @return whether to stop the test now
+     * @return whether to stop the test now interrupting current running samplers
      */
     public boolean isStopTestNow() {
         return stopTestNow;

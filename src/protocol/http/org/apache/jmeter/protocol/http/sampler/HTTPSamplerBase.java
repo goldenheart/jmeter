@@ -826,8 +826,8 @@ public abstract class HTTPSamplerBase extends AbstractSampler
     public void setAuthManager(AuthManager value) {
         AuthManager mgr = getAuthManager();
         if (mgr != null) {
-            if(log.isDebugEnabled()) {
-                log.debug("Existing AuthManager {} superseded by {}", mgr.getName(), value.getName());
+            if(log.isWarnEnabled()) {
+                log.warn("Existing AuthManager {} superseded by {}", mgr.getName(), value.getName());
             }
         }
         setProperty(new TestElementProperty(AUTH_MANAGER, value));
@@ -864,8 +864,8 @@ public abstract class HTTPSamplerBase extends AbstractSampler
     public void setCookieManager(CookieManager value) {
         CookieManager mgr = getCookieManager();
         if (mgr != null) {
-            if(log.isDebugEnabled()) {
-                log.debug("Existing CookieManager {} superseded by {}", mgr.getName(), value.getName());
+            if(log.isWarnEnabled()) {
+                log.warn("Existing CookieManager {} superseded by {}", mgr.getName(), value.getName());
             }
         }
         setCookieManagerProperty(value);
@@ -883,8 +883,8 @@ public abstract class HTTPSamplerBase extends AbstractSampler
     public void setCacheManager(CacheManager value) {
         CacheManager mgr = getCacheManager();
         if (mgr != null) {
-            if(log.isDebugEnabled()) {
-                log.debug("Existing CacheManager {} superseded by {}", mgr.getName(), value.getName());
+            if(log.isWarnEnabled()) {
+                log.warn("Existing CacheManager {} superseded by {}", mgr.getName(), value.getName());
             }
         }
         setCacheManagerProperty(value);
@@ -901,8 +901,8 @@ public abstract class HTTPSamplerBase extends AbstractSampler
     public void setDNSResolver(DNSCacheManager cacheManager) {
         DNSCacheManager mgr = getDNSResolver();
         if (mgr != null) {
-            if(log.isDebugEnabled()) {
-                log.debug("Existing DNSCacheManager {} superseded by {}", mgr.getName(), cacheManager.getName());
+            if(log.isWarnEnabled()) {
+                log.warn("Existing DNSCacheManager {} superseded by {}", mgr.getName(), cacheManager.getName());
             }
         }
         setProperty(new TestElementProperty(DNS_CACHE_MANAGER, cacheManager));
@@ -2073,7 +2073,6 @@ public abstract class HTTPSamplerBase extends AbstractSampler
             // check if there is anything to replace
             int nbReplaced = ((Integer)result[1]).intValue();
             if (nbReplaced>0) {
-                totalReplaced += nbReplaced;
                 String replacedText = (String) result[0];
                 setPath(replacedText);
                 totalReplaced += nbReplaced;
@@ -2085,7 +2084,6 @@ public abstract class HTTPSamplerBase extends AbstractSampler
             // check if there is anything to replace
             int nbReplaced = ((Integer)result[1]).intValue();
             if (nbReplaced>0) {
-                totalReplaced += nbReplaced;
                 String replacedText = (String) result[0];
                 setDomain(replacedText);
                 totalReplaced += nbReplaced;

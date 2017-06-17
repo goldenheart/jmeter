@@ -42,7 +42,6 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.jmeter.reporters.ResultCollectorHelper;
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
-import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jmeter.util.NameUpdater;
 import org.apache.jorphan.collections.HashTree;
@@ -154,7 +153,7 @@ public class SaveService {
     private static String fileVersion = ""; // computed from saveservice.properties file// $NON-NLS-1$
     // Must match the sha1 checksum of the file saveservice.properties (without newline character),
     // used to ensure saveservice.properties and SaveService are updated simultaneously
-    static final String FILEVERSION = "672a997ce15720edd5ac94b288fd19f80202e4d3"; // Expected value $NON-NLS-1$
+    static final String FILEVERSION = "4336c68d43562b80a1d1b5feba226aa36f52597b"; // Expected value $NON-NLS-1$
 
     private static String fileEncoding = ""; // read from properties file// $NON-NLS-1$
 
@@ -356,19 +355,8 @@ public class SaveService {
         try {
             return "class:"+result.getClass()+",content:"+ToStringBuilder.reflectionToString(result);
         } catch(Exception e) {
-            return "Exception occured creating debug from event, message:"+e.getMessage();
+            return "Exception occurred creating debug from event, message:"+e.getMessage();
         }
-    }
-
-    /**
-     * @param elem test element
-     * @param writer output stream which must be created using {@link #getFileEncoding(String)}
-     * @throws IOException when writing data to output fails
-     */
-    // Used by ResultCollector#recordStats()
-    public synchronized static void saveTestElement(TestElement elem, Writer writer) throws IOException {
-        JMXSAVER.toXML(elem, writer); // TODO should this be JTLSAVER? Only seems to be called by MonitorHealthVisualzer
-        writer.write('\n');
     }
 
     // Routines for TestSaveService
@@ -476,25 +464,13 @@ public class SaveService {
     private static InputStreamReader getInputStreamReader(InputStream inStream) {
         // Check if we have a encoding to use from properties
         Charset charset = getFileEncodingCharset();
-        if(charset != null) {
-            return new InputStreamReader(inStream, charset);
-        }
-        else {
-            // We use the default character set encoding of the JRE
-            return new InputStreamReader(inStream);
-        }
+        return new InputStreamReader(inStream, charset);
     }
 
     private static OutputStreamWriter getOutputStreamWriter(OutputStream outStream) {
         // Check if we have a encoding to use from properties
         Charset charset = getFileEncodingCharset();
-        if(charset != null) {
-            return new OutputStreamWriter(outStream, charset);
-        }
-        else {
-            // We use the default character set encoding of the JRE
-            return new OutputStreamWriter(outStream);
-        }
+        return new OutputStreamWriter(outStream, charset);
     }
 
     /**
@@ -513,27 +489,28 @@ public class SaveService {
         }
     }
 
+    // @NotNull
     private static Charset getFileEncodingCharset() {
         // Check if we have a encoding to use from properties
         if(fileEncoding != null && fileEncoding.length() > 0) {
             return Charset.forName(fileEncoding);
         }
         else {
+            
             // We use the default character set encoding of the JRE
-            return null;
+            log.info("fileEncoding not defined - using JRE default");
+            return Charset.defaultCharset();
         }
     }
 
     private static void writeXmlHeader(OutputStreamWriter writer) throws IOException {
         // Write XML header if we have the charset to use for encoding
         Charset charset = getFileEncodingCharset();
-        if(charset != null) {
-            // We do not use getEncoding method of Writer, since that returns
-            // the historical name
-            String header = XML_HEADER.replaceAll("<ph>", charset.name());
-            writer.write(header);
-            writer.write('\n');
-        }
+        // We do not use getEncoding method of Writer, since that returns
+        // the historical name
+        String header = XML_HEADER.replaceAll("<ph>", charset.name());
+        writer.write(header);
+        writer.write('\n');
     }
 
 //  Normal output
